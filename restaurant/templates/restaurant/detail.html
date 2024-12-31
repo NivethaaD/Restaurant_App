@@ -1,0 +1,137 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Carousel for Images -->
+  <div class="bg-white rounded-xl shadow-lg mb-8 w-full lg:w-1/2 mx-auto overflow-hidden">
+    <div class="swiper-container">
+      <div class="swiper-wrapper">
+        {% for image in restaurant.images.all %}
+          <div class="swiper-slide">
+            <img src="{{ image.image.url }}" alt="{{ image.description }}" class="w-full h-80 object-cover">
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Navigation buttons -->
+      <div class="swiper-button-next text-gray-500 p-2 rounded-full bg-white shadow-lg hover:bg-gray-200 absolute top-1/2 right-0 transform -translate-y-1/2 z-10"></div>
+      <div class="swiper-button-prev text-gray-500 p-2 rounded-full bg-white shadow-lg hover:bg-gray-200 absolute top-1/2 left-0 transform -translate-y-1/2 z-10"></div>
+    </div>
+  </div>
+
+  <!-- Restaurant Information Section -->
+  <div class="flex flex-col md:flex-row mb-8 gap-6">
+    <!-- Left side (Restaurant Details) -->
+    <div class="bg-white p-6 rounded-xl shadow-md w-full md:w-1/2 max-h-[400px] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-3xl font-semibold">{{ restaurant.title }}</h2>
+        <!-- Rating Stars -->
+        <div class="flex items-center">
+          {% for i in stars %}
+            {% if i < restaurant.rating %}
+              <i class="fas fa-star text-yellow-400"></i> <!-- Filled star -->
+            {% else %}
+              <i class="far fa-star text-yellow-400"></i> <!-- Empty star -->
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Open or Closed Status and Timing -->
+      <div class="flex items-center mb-4">
+        <p class="text-lg {% if restaurant.is_open %} text-green-500 {% else %} text-red-500 {% endif %} font-semibold flex items-center">
+          {% if restaurant.is_open %}
+            <!-- Open Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+            Open Now
+          {% else %}
+            <!-- Closed Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+            Closed Now
+          {% endif %}
+        </p>
+        <span class="ml-4 text-lg text-gray-600">({{ restaurant.opening_time }} to {{ restaurant.closing_time }})</span>
+      </div>
+
+      <!-- Location Section -->
+      <div class="flex items-center mt-4">
+        <p class="text-lg text-gray-800 font-semibold flex items-center">
+          <!-- Location Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+            <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clip-rule="evenodd" />
+          </svg>
+          {{ restaurant.location }}
+        </p>
+      </div>
+
+      <!-- Description Section -->
+      <div class="mt-6">
+        <h3 class="text-xl font-semibold mb-2 text-red-400">About</h3>
+        <p class="text-gray-800">{{ restaurant.description }}</p>
+      </div>
+      <hr class="mt-3">
+      <!-- Details Section -->
+      <div class="mt-6">
+        <h3 class="text-xl font-semibold mb-2 text-red-400">Details</h3>
+        <ul>
+          <li class="text-gray-800 mb-2">
+            <i class="text-gray-400">Cost for Two  :</i> ₹{{ restaurant.cost_for_two }}
+          </li>
+          
+          <li class="text-gray-800 mb-2">
+            <i class="text-gray-400">Type of Food  :</i> {{ restaurant.type_of_food }}
+          </li>
+       
+          <li class="text-gray-800 mb-2">
+            <i class="text-gray-400">Cuisines  :</i> {{ restaurant.cuisines }}
+          </li>
+ 
+        </ul>
+      </div>
+    </div>
+
+    <!-- Right side (Dishes Section with Grid) -->
+    <div class="bg-white p-6 rounded-xl shadow-md w-full md:w-1/2 max-h-[400px] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-2xl font-semibold">Menu</h3>
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGdqRcMgHEwoRxyth8quoWeVaKweTl1aMDQg&s" class="w-[15%] h-[15%]">
+      </div>
+
+      <!-- Grid for displaying dishes -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for dish in restaurant.menu.all %}
+        <div class="p-4 bg-gray-100 rounded-lg shadow hover:shadow-lg">
+          <div class="flex justify-between">
+            <h4 class="text-xl font-medium">{{ dish.name }}</h4>
+            <p class="text-gray-600">₹ {{ dish.price }}</p>
+          </div>
+          <p class="text-sm {% if dish.type_of_food == 'veg' %}text-green-500{% elif dish.type_of_food == 'non-veg' %}text-red-500{% elif dish.type_of_food == 'vegan' %}text-yellow-500{% endif %} font-semibold">
+            {{ dish.type_of_food|title }}
+          </p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var swiper = new Swiper('.swiper-container', {
+    slidesPerView: 1,    // Display one image at a time
+    spaceBetween: 0,     // No space between slides
+    loop: false,         // Disable looping of images
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,    // Enable clickable pagination
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+  });
+</script>
+{% endblock %}

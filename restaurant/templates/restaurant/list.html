@@ -1,0 +1,159 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<div class="space-y-8">
+  <!-- Filter Section -->
+  <div class="m-4 bg-white p-6 shadow-md rounded-3xl">
+    <h2 class="text-2xl font-semibold mb-4">Filters / Sort By</h2>
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- Filter Fields -->
+      <div>
+        <label for="city" class="block text-sm font-medium">City:</label>
+        <input type="text" name="city" placeholder="Enter the City" class="mt-1 p-2 border border-gray-300 rounded w-full" value="{{ request.GET.city }}">
+      </div>
+      <div>
+        <label for="food_type" class="block text-sm font-medium">Food Type:</label>
+        <select name="food_type" class="mt-1 p-2 border border-gray-300 rounded w-full">
+          <option value="">All</option>
+          {% for value, label in food_type_choices %}
+            <option value="{{ value }}" {% if value == request.GET.food_type %} selected {% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="cuisines" class="block text-sm font-medium">Cuisines:</label>
+        <select name="cuisines" class="mt-1 p-2 border border-gray-300 rounded w-full">
+          <option value="">All</option>
+          {% for value, label in cuisines_choices %}
+            <option value="{{ value }}" {% if value == request.GET.cuisines %} selected {% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="rating" class="block text-sm font-medium">Min Rating:</label>
+        <input type="number" name="rating" class="mt-1 p-2 border border-gray-300 rounded w-full" value="{{ request.GET.rating }}" step="0.1" min="0" max="5">
+      </div>
+      <div>
+        <label for="cost_for_two" class="block text-sm font-medium">Max Cost for Two:</label>
+        <input type="number" name="cost_for_two" class="mt-1 p-2 border border-gray-300 rounded w-full" value="{{ request.GET.cost_for_two }}">
+      </div>
+      <div class="flex items-center space-x-2">
+        <label for="open_hotel" class="text-sm font-medium">Opened Now:</label>
+        <input type="checkbox" name="open_hotel" value="true" {% if request.GET.open_hotel == "true" %} checked {% endif %} class="mt-1">
+      </div>
+      <div>
+        <label for="sort_by" class="block text-sm font-medium">Sort By:</label>
+        <select name="sort_by" class="mt-1 p-2 border border-gray-300 rounded w-full">
+          <option value="rating" {% if request.GET.sort_by == 'rating' %} selected {% endif %}>Rating</option>
+          <option value="cost_for_two" {% if request.GET.sort_by == 'cost_for_two' %} selected {% endif %}>Cost for Two</option>
+        </select>
+      </div>
+      <div>
+        <label for="order" class="block text-sm font-medium">Order:</label>
+        <select name="order" class="mt-1 p-2 border border-gray-300 rounded w-full">
+          <option value="asc" {% if request.GET.order == 'asc' %} selected {% endif %}>Ascending</option>
+          <option value="desc" {% if request.GET.order == 'desc' %} selected {% endif %}>Descending</option>
+        </select>
+      </div>
+      <div class="col-span-1 md:col-span-4 flex justify-center">
+        <button type="submit" class="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 transition w-full md:w-1/3">
+          Apply Filters
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Restaurant List Section -->
+  <div>
+    <i><h2 class="text-3xl font-semibold m-4 flex justify-center">Restaurants</h2></i>
+
+    <!-- Search Section -->
+    <div class="m-4 bg-white p-6 shadow-md rounded-3xl w-full md:w-1/2 mx-auto flex justify-center items-center">
+      <div class="text-center w-full">
+        <h2 class="text-xl font-semibold mb-4">Search the Restaurants :</h2>
+        <form method="get" class="space-y-4">
+          <div class="flex justify-center space-x-3">
+            <input type="text" name="search" placeholder="Search by name, city, or food type" 
+                  class="mt-1 p-2 border border-gray-300 rounded w-3/4 md:w-1/2" value="{{ request.GET.search }}">
+            <button type="submit" class="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 transition">
+              Search
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {% if restaurants %}
+      <div class="m-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for restaurant in restaurants %}
+          <div class="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition">
+            <!-- Display Images -->
+            <div class="mb-4">
+              <img src="{{ restaurant.images.first.image.url }}" alt="{{ restaurant.title }}" class="w-full h-48 object-cover rounded-lg shadow-md">
+            </div>
+            
+            <!-- Title and Stars -->
+            <div class="flex justify-between">
+              <h3 class="text-xl font-semibold mb-2">{{ restaurant.title }}</h3>
+              <div class="flex items-center space-x-1">
+                {% for i in rating_range %}
+                  {% if i < restaurant.rating %}
+                    <i class="fas fa-star text-yellow-400"></i> <!-- Filled star -->
+                  {% else %}
+                    <i class="far fa-star text-yellow-400"></i> <!-- Empty star -->
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Location and Open/Close Status -->
+            <div class="flex justify-between">
+              <div class="flex">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                  <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clip-rule="evenodd" />
+                </svg>
+                
+               <p class="text-gray-600 text-sm">{{ restaurant.location }}</p>
+             </div>
+              {% if restaurant.is_open %}
+                <p class="text-green-500">Open</p>
+              {% else %}
+                <p class="text-red-500">Closed</p>
+              {% endif %}
+            </div>
+
+            <!-- Details Button -->
+            <div class="flex justify-center mt-4">
+              <a href="{% url 'restaurant_detail' restaurant.id %}" class="w-1/2">
+                <button class="bg-red-400 text-white font-bold py-2 px-4 rounded hover:bg-red-500 transition w-full">
+                  Details
+                </button>
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class=" m-3 flex justify-center mt-6">
+        <div class="flex space-x-4">
+          {% if page_obj.has_previous %}
+            <a href="?page=1{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.food_type %}&food_type={{ request.GET.food_type }}{% endif %}{% if request.GET.cuisines %}&cuisines={{ request.GET.cuisines }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}{% if request.GET.cost_for_two %}&cost_for_two={{ request.GET.cost_for_two }}{% endif %}{% if request.GET.open_hotel %}&open_hotel={{ request.GET.open_hotel }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.food_type %}&food_type={{ request.GET.food_type }}{% endif %}{% if request.GET.cuisines %}&cuisines={{ request.GET.cuisines }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}{% if request.GET.cost_for_two %}&cost_for_two={{ request.GET.cost_for_two }}{% endif %}{% if request.GET.open_hotel %}&open_hotel={{ request.GET.open_hotel }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition">Previous</a>
+          {% endif %}
+
+          <span class="text-gray-600">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.food_type %}&food_type={{ request.GET.food_type }}{% endif %}{% if request.GET.cuisines %}&cuisines={{ request.GET.cuisines }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}{% if request.GET.cost_for_two %}&cost_for_two={{ request.GET.cost_for_two }}{% endif %}{% if request.GET.open_hotel %}&open_hotel={{ request.GET.open_hotel }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.city %}&city={{ request.GET.city }}{% endif %}{% if request.GET.food_type %}&food_type={{ request.GET.food_type }}{% endif %}{% if request.GET.cuisines %}&cuisines={{ request.GET.cuisines }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}{% if request.GET.cost_for_two %}&cost_for_two={{ request.GET.cost_for_two }}{% endif %}{% if request.GET.open_hotel %}&open_hotel={{ request.GET.open_hotel }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.order %}&order={{ request.GET.order }}{% endif %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition">Last</a>
+          {% endif %}
+        </div>
+      </div>
+
+    {% else %}
+      <p>No restaurants found.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
