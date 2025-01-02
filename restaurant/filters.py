@@ -45,6 +45,17 @@ class RestaurantFilter(django_filters.FilterSet):
         widget=django_filters.widgets.LinkWidget(attrs={'placeholder': 'Search by name, city, or food type'})
     )
 
+    ordering = django_filters.OrderingFilter(
+        fields=(
+            ('rating', 'rating'),
+            ('cost_for_two', 'cost_for_two'),
+        ),
+        field_labels={
+            'rating': 'Rating',
+            'cost_for_two': 'Cost for Two',
+        },
+        label='Sort By'
+    )
     
     class Meta:
         model = Restaurant
