@@ -20,22 +20,6 @@ class RestaurantListView(ListView):
         queryset = Restaurant.objects.all()
         restaurant_filter = RestaurantFilter(self.request.GET, queryset=queryset)
         queryset = restaurant_filter.qs 
-
-        sort_by = self.request.GET.get('sort_by', 'rating') 
-        order = self.request.GET.get('order', 'desc') 
-
-        if sort_by == 'rating':
-            if order == 'asc':
-                queryset = queryset.order_by('rating') 
-            else:
-                queryset = queryset.order_by('-rating')  
-        else:
-           
-            if order == 'asc':
-                queryset = queryset.order_by(sort_by)
-            else:
-                queryset = queryset.order_by(f'-{sort_by}')
-
         return queryset
 
     def get_context_data(self, **kwargs):

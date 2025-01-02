@@ -188,6 +188,48 @@ class RestaurantListTestCase(TestCase):
             response = self.client.get(reverse('restaurant-list') + '?type_of_food=Italian')
             self.assertContains(response, self.restaurant_open.title)
 
+        # Test for sorting 
+
+        def test_sorting_by_rating_ascending(self):
+        
+            response = self.client.get(reverse('restaurant-list') + '?ordering=rating')
+            restaurants = response.context['restaurants']
+
+            # Check the order of restaurants by rating (ascending)
+            self.assertEqual(restaurants[0], self.restaurant_closed)  # Rating = 4.0
+            self.assertEqual(restaurants[1], self.restaurant_location)  # Rating = 4.2
+            self.assertEqual(restaurants[2], self.restaurant_open)  # Rating = 4.5
+
+        def test_sorting_by_rating_descending(self):
+          
+            response = self.client.get(reverse('restaurant-list') + '?ordering=-rating')
+            restaurants = response.context['restaurants']
+
+            # Check the order of restaurants by rating (descending)
+            self.assertEqual(restaurants[0], self.restaurant_open)  # Rating = 4.5
+            self.assertEqual(restaurants[1], self.restaurant_location)  # Rating = 4.2
+            self.assertEqual(restaurants[2], self.restaurant_closed)  # Rating = 4.0
+
+        def test_sorting_by_cost_for_two_ascending(self):
+           
+            response = self.client.get(reverse('restaurant-list') + '?ordering=cost_for_two')
+            restaurants = response.context['restaurants']
+
+            # Check the order of restaurants by cost for two (ascending)
+            self.assertEqual(restaurants[0], self.restaurant_closed)  # Cost = 25
+            self.assertEqual(restaurants[1], self.restaurant_open)  # Cost = 30
+            self.assertEqual(restaurants[2], self.restaurant_location)  # Cost = 40
+
+        def test_sorting_by_cost_for_two_descending(self):
+            # Access the restaurant list with sorting by cost for two (descending)
+            response = self.client.get(reverse('restaurant-list') + '?ordering=-cost_for_two')
+            restaurants = response.context['restaurants']
+
+            # Check the order of restaurants by cost for two (descending)
+            self.assertEqual(restaurants[0], self.restaurant_location)  # Cost = 40
+            self.assertEqual(restaurants[1], self.restaurant_open)  # Cost = 30
+            self.assertEqual(restaurants[2], self.restaurant_closed)  # Cost = 25
+
 # Test for the Detail view
 
 from django.test import TestCase
