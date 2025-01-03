@@ -337,5 +337,79 @@ class RestaurantDetailViewTestCase(TestCase):
         response = self.client.get(self.url)
         self.assertContains(response, "Closed Now")
 
-         
+
+# Tests for Authentication
+from django.test import TestCase
+from django.urls import reverse
+from django.contrib.auth.models import User
+
+class RegisterTestCase(TestCase):
+    def setUp(self):
+        self.register_url = reverse('register')
+
+    def test_register_page_loads(self):
+        response = self.client.get(self.register_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Register')
+
+    def test_valid_registration(self):
+        response = self.client.post(self.register_url, {
+            'username': 'newuser',
+            'password1': 'securepassword123',
+            'password2': 'securepassword123'
+        })
+        self.assertRedirects(response, reverse('login'))  # Replace 'profile' with the post-registration URL.
+        self.assertTrue(User.objects.filter(username='newuser').exists())
+
+    def test_password_mismatch(self):
+        response = self.client.post(self.register_url, {
+            'username': 'newuser',
+            'password1': 'securepassword123',
+            'password2': 'differentpassword'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "The two password fields didn’t match.")
+
+    def test_existing_username_registration(self):
+        User.objects.create_user(username='existinguser', password='password')
+        response = self.client.post(self.register_url, {
+            'username': 'existinguser',
+            'password1': 'securepassword123',
+            'password2': 'securepassword123'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "A user with that username already exists.")
+
+class LoginTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.login_url = reverse('login')
+
+    def test_login_page_loads(self):
+        response = self.client.get(self.login_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Login')
+
+    def test_valid_login(self):
+        response = self.client.post(self.login_url, {'username': 'testuser', 'password': 'testpassword'})
+        self.assertRedirects(response, reverse('restaurant-list'))  
+
+    def test_invalid_login(self):
+        response = self.client.post(self.login_url, {'username': 'testuser', 'password': 'wrongpassword'})
+        self.assertEqual(response.status_code, 200)
+
+class PasswordResetTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', email='testuser@example.com', password='testpassword')
+        self.password_reset_url = reverse('password_reset')
+
+    def test_password_reset_page_loads(self):
+        response = self.client.get(self.password_reset_url)
+        self.assertEqual(response.status_code, 200)
+       
+    def test_password_reset_valid_email(self):
+        response = self.client.post(self.password_reset_url, {'email': 'testuser@example.com'})
+        self.assertRedirects(response, reverse('password_reset_done'))
+
+    
 
