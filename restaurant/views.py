@@ -7,6 +7,7 @@ from django.views.generic.edit import FormView
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
 
+
 def home(request):
     return render(request,'restaurant/home.html')
 
@@ -40,7 +41,6 @@ class RestaurantDetailView(DetailView):
         context['stars']= list(range(5))
         return context
 
-
 class RegisterView(FormView):
     template_name = 'registration/register.html'
     form_class = UserCreationForm
@@ -53,4 +53,5 @@ class RegisterView(FormView):
 
 def profile_view(request):
     return render(request, 'restaurant/profile.html')
+
 

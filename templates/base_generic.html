@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <!-- Swiper CSS -->
+
   <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" /> 
 
   <!-- Swiper JS -->
@@ -29,6 +30,7 @@
       dropdown.classList.toggle('hidden');
     }
   </script>
+
 </head>
 <body class="bg-gray-100 font-sans">
 
@@ -38,6 +40,7 @@
       <i><h1 class="text-2xl font-semibold">MealMate</h1></i>
       <nav>
         <ul class="flex space-x-4">
+
           {% if request.path != '/' %}
             <li><a href="/" class="hover:text-black text-xl">Home</a></li>
             <p>|</p>
@@ -78,7 +81,9 @@
 
   <!-- Main Content Section -->
   <main>
+
     {% block content %} 
+
     <!-- Page specific content will go here -->
     {% endblock %}
   </main>
@@ -90,3 +95,4 @@
 
 </body>
 </html>
+

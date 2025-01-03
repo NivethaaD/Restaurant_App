@@ -337,6 +337,7 @@ class RestaurantDetailViewTestCase(TestCase):
         response = self.client.get(self.url)
         self.assertContains(response, "Closed Now")
 
+
 # Tests for Authentication
 from django.test import TestCase
 from django.urls import reverse
@@ -411,3 +412,4 @@ class PasswordResetTestCase(TestCase):
         self.assertRedirects(response, reverse('password_reset_done'))
 
     
+
