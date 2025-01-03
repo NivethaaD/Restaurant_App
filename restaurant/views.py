@@ -51,5 +51,6 @@ class RegisterView(FormView):
         messages.success(self.request, 'Your account has been created! You can now log in.')
         return super().form_valid(form)
 
-
+def profile_view(request):
+    return render(request, 'restaurant/profile.html')
 
