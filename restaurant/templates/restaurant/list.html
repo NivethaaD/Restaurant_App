@@ -92,7 +92,7 @@
               <h3 class="text-xl font-semibold mb-2">{{ restaurant.title }}</h3>
               <div class="flex items-center space-x-1">
                 {% for i in rating_range %}
-                  {% if i < restaurant.rating %}
+                  {% if i < restaurant.avg_rating %}
                     <i class="fas fa-star text-yellow-400"></i> <!-- Filled star -->
                   {% else %}
                     <i class="far fa-star text-yellow-400"></i> <!-- Empty star -->
