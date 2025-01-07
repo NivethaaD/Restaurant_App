@@ -449,7 +449,7 @@ class RestaurantFeaturesTestCase(TestCase):
     def test_add_review(self):
        
         self.client.login(username='testuser', password='password')
-        response = self.client.post(reverse('restaurant_detail', args=[self.restaurant.pk]), {
+        response = self.client.post(reverse('add_review', args=[self.restaurant.pk]), {
             'add_review': True,
             'rating': 4,
             'review_text': 'Great food!'
@@ -461,7 +461,7 @@ class RestaurantFeaturesTestCase(TestCase):
      
         self.client.login(username='testuser', password='password')
         review = UserReview.objects.create(user=self.user, restaurant=self.restaurant, rating=4.0, review_text='Good food')
-        response = self.client.post(reverse('restaurant_detail', args=[self.restaurant.pk]), {
+        response = self.client.post(reverse('edit_review', args=[self.restaurant.pk]), {
             'edit_review': True,
             'review_id': review.pk,
             'rating': 5.0,
@@ -476,7 +476,7 @@ class RestaurantFeaturesTestCase(TestCase):
       
         self.client.login(username='testuser', password='password')
         review = UserReview.objects.create(user=self.user, restaurant=self.restaurant, rating=4.0, review_text='Good food')
-        response = self.client.post(reverse('restaurant_detail', args=[self.restaurant.pk]), {
+        response = self.client.post(reverse('delete_review', args=[self.restaurant.pk]), {
             'delete_review': True,
             'review_id': review.pk,
         })

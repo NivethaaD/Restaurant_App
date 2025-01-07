@@ -83,38 +83,8 @@ class RestaurantDetailView(DetailView):
             context['is_bookmarked'] = False
         return context
 
-   
     def post(self, request, *args, **kwargs):
         restaurant = self.get_object()
-
-        # Add review logic
-        if 'add_review' in request.POST:
-            review_form = UserReviewForm(request.POST)
-            if review_form.is_valid():
-                review = review_form.save(commit=False)
-                review.user = request.user  # Correct way to access the logged-in user
-                review.restaurant = restaurant
-                review.save()
-                return redirect('restaurant_detail', pk=restaurant.pk)
-        
-        # Edit review logic
-        if 'edit_review' in request.POST:
-            review = get_object_or_404(UserReview, pk=request.POST['review_id'])
-            if review.user == request.user: 
-               
-                edit_form = UserReviewEditForm(request.POST, instance=review)
-                if edit_form.is_valid():
-                   
-                    edit_form.save()
-                    return redirect('restaurant_detail', pk=restaurant.pk)
-        
-        # Delete review logic
-        if 'delete_review' in request.POST:
-            review = get_object_or_404(UserReview, pk=request.POST['review_id'])
-            if review.user == request.user:  # Ensure the review belongs to the current user
-                review.delete()
-            return redirect('restaurant_detail', pk=restaurant.pk)
-        
         bookmark, created = UserBookmark.objects.get_or_create(user=request.user, restaurant=restaurant)
 
         if not created:
@@ -126,6 +96,34 @@ class RestaurantDetailView(DetailView):
             message = "Bookmark added"
 
         return redirect('restaurant_detail', pk=restaurant.pk)
+    
+class AddReviewView(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        restaurant = get_object_or_404(Restaurant, pk=pk)
+        review_form = UserReviewForm(request.POST)
+        if review_form.is_valid():
+            review = review_form.save(commit=False)
+            review.user = request.user
+            review.restaurant = restaurant
+            review.save()
+        return redirect('restaurant_detail', pk=restaurant.pk)
+
+class EditReviewView(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        review = get_object_or_404(UserReview, pk=pk)
+        if review.user != request.user:
+            return redirect('restaurant_detail', pk=review.restaurant.pk)
+        edit_form = UserReviewEditForm(request.POST, instance=review)
+        if edit_form.is_valid():
+            edit_form.save()
+        return redirect('restaurant_detail', pk=review.restaurant.pk)
+
+class DeleteReviewView(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        review = get_object_or_404(UserReview, pk=pk)
+        if review.user == request.user:
+            review.delete()
+        return redirect('restaurant_detail', pk=review.restaurant.pk)
         
 class RegisterView(FormView):
     template_name = 'registration/register.html'

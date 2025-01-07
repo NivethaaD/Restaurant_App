@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RestaurantListView , RestaurantDetailView , home , RegisterView , profile_view , BookmarkView
+from .views import RestaurantListView , RestaurantDetailView , home , RegisterView , profile_view , BookmarkView , AddReviewView , EditReviewView, DeleteReviewView
 from django.contrib.auth import views as auth_views
 
 
@@ -17,6 +17,9 @@ urlpatterns = [
     path('password_reset_complete/', auth_views.PasswordResetCompleteView.as_view(template_name='registration/password_reset_complete.html'), name='password_reset_complete'),
     path('profile/',profile_view , name = 'profile'),
     path('bookmarks/', BookmarkView.as_view(), name='bookmarked_restaurants'),
+    path('restaurant/<int:pk>/add-review/', AddReviewView.as_view(), name='add_review'),
+    path('review/<int:pk>/edit/', EditReviewView.as_view(), name='edit_review'),
+    path('review/<int:pk>/delete/', DeleteReviewView.as_view(), name='delete_review'),
     
     
 ]
