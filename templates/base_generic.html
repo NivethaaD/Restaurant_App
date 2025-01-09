@@ -47,10 +47,14 @@
           {% endif %}
           
           <li><a href="{% url 'restaurant-list' %}" class="hover:text-black text-xl">Restaurants</a></li>
+          <p>|</p>
+          <li><a href="{% url 'spotlighted_restaurants' %}" class="hover:text-black text-xl">Spotlight</a></li>
 
           {% if request.user.is_authenticated %}
           <p>|</p>
           <li><a href="{% url 'bookmarked_restaurants' %}" class="hover:text-black text-xl">Bookmarks</a></li>
+          <p>|</p>
+          <li><a href="{% url 'visited_restaurants' %}" class="hover:text-black text-xl">Visited Restaurants</a></li>
           {% endif %}
         </ul>    
       </nav>
@@ -70,6 +74,7 @@
           <!-- Dropdown menu -->
           <div id="dropdown-menu" class="absolute right-0 hidden mt-2 space-y-2 bg-red-100 text-black rounded shadow-lg z-50">
             <a href="{% url 'bookmarked_restaurants' %}" class="block px-4 py-2 hover:bg-gray-300">Bookmarks</a>
+            <a href="{% url 'visited_restaurants' %}" class="block px-4 py-2 hover:bg-gray-300" >Visited Restaurants</a>
             <a href="{% url 'password_reset' %}" class="block px-4 py-2 hover:bg-gray-300 ">Reset Password</a>
             <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-gray-300">Logout</a>
           </div>

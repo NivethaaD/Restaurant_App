@@ -1,0 +1,33 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-center mb-6 mt-3">Your Spotlight Restaurants</h1>
+<div class="flex flex-wrap justify-center gap-6 m-4">
+    {% if spotlight_restaurants %}
+        {% for spotlight in spotlight_restaurants %}
+            <div class="bg-white p-4 rounded-lg shadow-lg w-80 text-center hover:shadow-xl transition-shadow">
+                <!-- Display the restaurant's first image -->
+                {% with spotlight.restaurant.images.first as image %}
+                    {% if image %}
+                        <img src="{{ image.image.url }}" alt="{{ spotlight.restaurant.title }}" class="w-full h-48 object-cover rounded-md mb-4">
+                    {% else %}
+                        <div class="w-full h-48 bg-gray-200 rounded-md mb-4 flex items-center justify-center text-gray-500">
+                            No Image Available
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Restaurant Title -->
+                <h2 class="text-xl font-semibold mb-2">{{ spotlight.restaurant.title }}</h2>
+                <p class="text-sm text-gray-500">{{ spotlight.restaurant.location }}</p>
+                <a href="{% url 'restaurant_detail' spotlight.restaurant.pk %}" 
+                   class="block mt-4 bg-red-400 text-white py-2 px-4 rounded-lg hover:bg-red-500">
+                   View Details
+                </a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-gray-500 text-center"> No spotlighted restaurants yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import ListView , DetailView , View
-from .models import Restaurant, UserBookmark
+from .models import Restaurant, UserBookmark , UserVisited ,SpotlightRestaurant
 from .filters import RestaurantFilter
 from django.contrib import messages
 from django.views.generic.edit import FormView
@@ -81,6 +81,18 @@ class RestaurantDetailView(DetailView):
         else:
             # Set default value for unauthenticated users
             context['is_bookmarked'] = False
+
+        if self.request.user.is_authenticated:
+            context['is_visited'] = UserVisited.objects.filter(user=self.request.user, restaurant=restaurant).exists()
+        else:
+            context['is_visited'] = False
+
+        isspotlight = SpotlightRestaurant.objects.filter(restaurant=restaurant , spotlighted=True)
+        if isspotlight:
+            context['is_spotlight']=True
+        else:
+            context['is_spotlight'] = False
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -136,8 +148,6 @@ class RegisterView(FormView):
         messages.success(self.request, 'Your account has been created! You can now log in.')
         return super().form_valid(form)
     
-def profile_view(request):
-    return render(request, 'restaurant/profile.html')
 
 class BookmarkView(LoginRequiredMixin, ListView):
     model = Restaurant
@@ -153,5 +163,35 @@ class BookmarkView(LoginRequiredMixin, ListView):
         return Restaurant.objects.filter(id__in=bookmarked_restaurants_ids)
     
 
+class MarkVisitedView(View):
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
 
+        restaurant = get_object_or_404(Restaurant, pk=kwargs['pk'])
+        visited, created = UserVisited.objects.get_or_create(user=request.user, restaurant=restaurant)
 
+        if not created:
+            visited.delete()
+            message = "Visit record removed"
+        else:
+            message = "Restaurant marked as visited"
+        return redirect('restaurant_detail', pk=restaurant.pk)
+
+class VisitedView(LoginRequiredMixin, ListView):
+    model = Restaurant
+    template_name = 'restaurant/visited_restaurants.html'
+    context_object_name = 'visited_restaurants'
+
+    def get_queryset(self):
+      
+        user = self.request.user
+        visited_restaurants_ids = UserVisited.objects.filter(user=user).values_list('restaurant_id', flat=True)
+        return Restaurant.objects.filter(id__in=visited_restaurants_ids)
+    
+class Spotlightview(ListView):
+    model = SpotlightRestaurant
+    template_name = "restaurant/spotlight_restaurants.html"
+    context_object_name = 'spotlight_restaurants'
+
+    
