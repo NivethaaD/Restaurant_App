@@ -20,15 +20,15 @@
   </div>
 
   <!-- Restaurant Information Section -->
-  <div class="flex flex-col md:flex-row mb-8 gap-6">
+  <div class="flex flex-col md:flex-row mb-2 gap-6">
     <!-- Left side (Restaurant Details) -->
     <div class="bg-white p-6 rounded-xl shadow-md w-full md:w-1/2 max-h-[400px] overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-3xl font-semibold">{{ restaurant.title }}</h2>
         <!-- Rating Stars -->
-        <div class="flex items-center">
-          {% for i in stars %}
-            {% if i < restaurant.rating %}
+        <div class="flex items-center space-x-1">
+          {% for i in rating_range %}
+            {% if i < avg_rating %}
               <i class="fas fa-star text-yellow-400"></i> <!-- Filled star -->
             {% else %}
               <i class="far fa-star text-yellow-400"></i> <!-- Empty star -->
@@ -38,6 +38,7 @@
       </div>
 
       <!-- Open or Closed Status and Timing -->
+      <div class="flex justify-between">
       <div class="flex items-center mb-4">
         <p class="text-lg {% if restaurant.is_open %} text-green-500 {% else %} text-red-500 {% endif %} font-semibold flex items-center">
           {% if restaurant.is_open %}
@@ -55,6 +56,24 @@
           {% endif %}
         </p>
         <span class="ml-4 text-lg text-gray-600">({{ restaurant.opening_time }} to {{ restaurant.closing_time }})</span>
+      </div>
+      
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+            {% if is_bookmarked %}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="green" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+            </svg>
+            
+            {% else %}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="None" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+            </svg>
+            
+            {% endif %}
+        </button>
+      </form>
       </div>
 
       <!-- Location Section -->
@@ -119,6 +138,179 @@
   </div>
 </div>
 
+<!-- Review Form (for logged-in user) -->
+
+{% if user.is_authenticated %}
+
+  <div class="bg-white p-6 rounded-xl shadow-md  max-h-[400px] overflow-y-auto ml-4 mr-4">
+    <h3 class="text-2xl font-semibold">Write a Review</h3>
+    <form action="{% url 'add_review' restaurant.pk %}" method="POST">
+      {% csrf_token %}
+      <label for="rating" class="text-xl">Rating:</label>
+      <div class=" mt-3 flex items-center space-x-1" id="rating-stars">
+          <!-- Star 1 -->
+          <input type="radio" name="rating" value="1" id="star1" class="hidden star-input" {% if user_review and user_review.rating == 1 %} checked {% endif %}>
+          <label for="star1" class="cursor-pointer star-label">
+              <i class="far fa-star text-gray-400"></i>
+          </label>
+
+          <!-- Star 2 -->
+          <input type="radio" name="rating" value="2" id="star2" class="hidden star-input" {% if user_review and user_review.rating == 2 %} checked {% endif %}>
+          <label for="star2" class="cursor-pointer star-label">
+              <i class="far fa-star text-gray-400"></i>
+          </label>
+
+          <!-- Star 3 -->
+          <input type="radio" name="rating" value="3" id="star3" class="hidden star-input" {% if user_review and user_review.rating == 3 %} checked {% endif %}>
+          <label for="star3" class="cursor-pointer star-label">
+              <i class="far fa-star text-gray-400"></i>
+          </label>
+
+          <!-- Star 4 -->
+          <input type="radio" name="rating" value="4" id="star4" class="hidden star-input" {% if user_review and user_review.rating == 4 %} checked {% endif %}>
+          <label for="star4" class="cursor-pointer star-label">
+              <i class="far fa-star text-gray-400"></i>
+          </label>
+
+          <!-- Star 5 -->
+          <input type="radio" name="rating" value="5" id="star5" class="hidden star-input" {% if user_review and user_review.rating == 5 %} checked {% endif %}>
+          <label for="star5" class="cursor-pointer star-label">
+              <i class="far fa-star text-gray-400"></i>
+          </label>
+      </div>
+      <div class="mt-3">
+        <label for="review_text" class="block font-medium text-gray-700 text-xl">Your Review</label>
+        <textarea
+            name="review_text"
+            id="review_text"
+            rows="4"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            placeholder="Write your review here..."
+            required
+        ></textarea>
+     </div>
+      
+      <button type="submit" name="add_review" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Submit Rating</button>
+    </form>
+  </div>
+
+  <!-- Display all reviews for the restaurant -->
+  <div class="bg-white p-6 rounded-xl shadow-md  max-h-[400px] overflow-y-auto mt-6 ml-4 mr-4 mb-3">
+    <h3 class="text-2xl font-semibold">All Reviews</h3>
+    <div class="mt-3 grid grid-cols-1 gap-4"> <!-- Single-row grid layout -->
+      {% if reviews %}
+      {% for review in reviews %}
+      <div class="review border p-4 rounded-lg shadow-sm items-center 4">
+          <!-- User and review details -->
+          <div class="">
+              <p>
+                  <strong>{{ review.user.username }}
+                  {% if request.user.username == review.user.username %}
+                      <i class="text-red-400">(me)</i> 
+                  {% endif %}
+                  :</strong>
+              </p>
+              <div class="flex items-center mt-2">
+                  <p class="mr-2">Rating - {{ review.rating|floatformat:0 }} <i class="text-sm">of</i> 5</p>
+                  <i class="fas fa-star text-yellow-300"></i> <!-- Yellow star icon -->
+              </div>
+              <p class="mt-2">{{ review.review }}</p>
+              <p class="text-gray-600">{{ review.review_text }}</p>
+          </div>
+          
+          <!-- Edit/Delete Buttons -->
+            {% if review.user == user %}
+              <div class="mt-3 flex items-center space-x-3">
+                    <!-- Edit Button -->
+                    <button
+                        type="button"
+                        class="text-blue-600 bg-blue-100 hover:bg-blue-200 rounded p-2"
+                        onclick="toggleEditForm({{ review.id }})"
+                    >
+                        Edit
+                    </button>
+
+                    <!-- Delete Button -->
+                    <form action="{% url 'delete_review' user_review.pk %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="review_id" value="{{ review.id }}">
+                        <button type="submit" name="delete_review" class="text-red-600 bg-red-100 hover:bg-red-200 rounded p-2">
+                            Delete
+                        </button>
+                    </form>
+              </div>
+
+              <!-- Edit Form -->
+              <div id="edit-form-{{ review.id }}" class="mt-3 hidden">
+                  <form action="{% url 'edit_review' user_review.pk %}" method="post">
+                      {% csrf_token %}
+                      <label for="rating-{{ review.id }}" class="text-xl">Rating:</label>
+                      <div class="mt-3 flex items-center space-x-1" id="rating-stars">
+                          <!-- Star 1 -->
+                          <input type="radio" name="rating" value="1" id="star1-{{ review.id }}" class="hidden star-input"
+                              {% if user_review and user_review.rating == 1 %} checked {% endif %}>
+                          <label for="star1-{{ review.id }}" class="cursor-pointer star-label">
+                              <i class="far fa-star text-gray-400"></i>
+                          </label>
+
+                          <!-- Other stars (2–5) follow the same pattern, ensuring unique IDs -->
+                          <!-- Star 2 -->
+                          <input type="radio" name="rating" value="2" id="star2-{{ review.id }}" class="hidden star-input"
+                              {% if user_review and user_review.rating == 2 %} checked {% endif %}>
+                          <label for="star2-{{ review.id }}" class="cursor-pointer star-label">
+                              <i class="far fa-star text-gray-400"></i>
+                          </label>
+                          
+                          <!-- Star 3 -->
+                          <input type="radio" name="rating" value="3" id="star3" class="hidden star-input" {% if user_review and user_review.rating == 3 %} checked {% endif %}>
+                          <label for="star3" class="cursor-pointer star-label">
+                              <i class="far fa-star text-gray-400"></i>
+                          </label>
+
+                          <!-- Star 4 -->
+                          <input type="radio" name="rating" value="4" id="star4" class="hidden star-input" {% if user_review and user_review.rating == 4 %} checked {% endif %}>
+                          <label for="star4" class="cursor-pointer star-label">
+                              <i class="far fa-star text-gray-400"></i>
+                          </label>
+
+                          <!-- Star 5 -->
+                          <input type="radio" name="rating" value="5" id="star5" class="hidden star-input" {% if user_review and user_review.rating == 5 %} checked {% endif %}>
+                          <label for="star5" class="cursor-pointer star-label">
+                              <i class="far fa-star text-gray-400"></i>
+                          </label>
+
+
+                      </div>
+                      <div class="mt-3">
+                          <label for="review_text-{{ review.id }}" class="block font-medium text-gray-700 text-xl">Your Review</label>
+                          <textarea
+                              name="review_text"
+                              id="review_text-{{ review.id }}"
+                              rows="4"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                              placeholder="Write your review here..."
+                              required
+                          >{{ review.review_text }}</textarea>
+                      </div>
+
+                      <input type="hidden" name="review_id" value="{{ review.id }}">
+                      <button type="submit" name="edit_review" class="text-blue-600 bg-blue-100 hover:bg-blue-200 rounded p-2 mr-3">
+                          Update
+                      </button>
+                  </form>
+              </div>
+            {% endif %}
+
+      </div>
+      {% endfor %}
+      {% else %}
+            <p class="text-center text-xl">No Reviews Found :)</p>
+      {% endif %}
+    </div>
+  </div>
+
+{% endif %}
+
 <script>
   var swiper = new Swiper('.swiper-container', {
     slidesPerView: 1,    // Display one image at a time
@@ -134,4 +326,46 @@
     },
   });
 </script>
+
+<script>
+  const stars = document.querySelectorAll('.star-label');
+  const starInputs = document.querySelectorAll('.star-input');
+  
+  stars.forEach((star, index) => {
+    // On click, fill the stars up to the clicked one with yellow color
+    star.addEventListener('click', () => {
+      // Fill stars up to the clicked star with yellow color
+      for (let i = 0; i <= index; i++) {
+        stars[i].querySelector('i').classList.remove('far');  // Remove empty star class
+        stars[i].querySelector('i').classList.add('fas', 'text-yellow-400');   // Add filled yellow star class
+      }
+      
+      // Empty stars after the clicked one
+      for (let i = index + 1; i < stars.length; i++) {
+        stars[i].querySelector('i').classList.remove('fas', 'text-yellow-400');  // Remove filled star class
+        stars[i].querySelector('i').classList.add('far', 'text-gray-400');  // Add empty gray star class
+      }
+      
+      // Mark the selected radio as checked
+      starInputs[index].checked = true;
+      
+      // Log the rating for debugging purposes
+      const rating = index + 1;  // For 1-based index
+      console.log("User rating is:", rating);  // Log the rating for debugging purposes
+    });
+  });
+</script>
+
+<script>
+  function toggleEditForm(reviewId) {
+      const form = document.getElementById(`edit-form-${reviewId}`);
+      if (form.classList.contains('hidden')) {
+          form.classList.remove('hidden');
+      } else {
+          form.classList.add('hidden');
+      }
+  }
+</script>
+
+
 {% endblock %}
