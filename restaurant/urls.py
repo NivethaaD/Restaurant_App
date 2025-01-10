@@ -22,5 +22,6 @@ urlpatterns = [
     path('restaurant/<int:pk>/mark-visited/', MarkVisitedView.as_view(), name='mark_visited'),
     path('visited-restaurants/', VisitedView.as_view(), name='visited_restaurants'),
     path('spotlight-restaurants/', Spotlightview.as_view(), name='spotlighted_restaurants')
+
 ]
 

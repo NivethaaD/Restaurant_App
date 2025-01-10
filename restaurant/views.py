@@ -15,6 +15,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Avg, DecimalField
 from django.db.models.functions import Coalesce
 
+
 def home(request):
     return render(request,'restaurant/home.html')
 
@@ -87,7 +88,7 @@ class RestaurantDetailView(DetailView):
             context['is_spotlight']=True
         else:
             context['is_spotlight'] = False
-
+            
         return context
 
     def post(self, request, *args, **kwargs):
@@ -143,7 +144,6 @@ class RegisterView(FormView):
         messages.success(self.request, 'Your account has been created! You can now log in.')
         return super().form_valid(form)
     
-
 class BookmarkView(LoginRequiredMixin, ListView):
     model = Restaurant
     template_name = 'restaurant/bookmarked_restaurants.html'
@@ -188,5 +188,7 @@ class Spotlightview(ListView):
     model = SpotlightRestaurant
     template_name = "restaurant/spotlight_restaurants.html"
     context_object_name = 'spotlight_restaurants'
+
+
 
     

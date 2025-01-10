@@ -514,6 +514,7 @@ class RestaurantFeaturesTestCase(TestCase):
             owner=self.user
         )
 
+
     def test_add_bookmark(self):
        
         self.client.login(username='testuser', password='password')
@@ -681,3 +682,4 @@ class SpotlightViewTest(TestCase):
         response = self.client.get(self.url)
         self.assertContains(response, "Restaurant 1")
         self.assertContains(response, "Restaurant 2")
+
