@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import ListView , DetailView , View
-from .models import Restaurant, UserBookmark
+from .models import Restaurant, UserBookmark , UserVisited ,SpotlightRestaurant
 from .filters import RestaurantFilter
 from django.contrib import messages
 from django.views.generic.edit import FormView
@@ -12,6 +12,9 @@ from .forms import UserReviewForm, UserReviewEditForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Avg, DecimalField
+from django.db.models.functions import Coalesce
+
 
 def home(request):
     return render(request,'restaurant/home.html')
@@ -23,7 +26,10 @@ class RestaurantListView(ListView):
     paginate_by = 3
 
     def get_queryset(self):
-        queryset = Restaurant.objects.all()
+      
+        queryset = Restaurant.objects.annotate(
+            avg_rating=Coalesce(Avg('reviews__rating'), 0 , output_field=DecimalField())  # Annotate avg_rating
+        )
         restaurant_filter = RestaurantFilter(self.request.GET, queryset=queryset)
         queryset = restaurant_filter.qs 
         return queryset
@@ -33,16 +39,6 @@ class RestaurantListView(ListView):
         context['food_type_choices'] = Restaurant._meta.get_field('type_of_food').choices
         context['cuisines_choices'] = Restaurant._meta.get_field('cuisines').choices
         context['rating_range']= range(5)
-
-        for restaurant in context['restaurants']:
-            reviews = UserReview.objects.filter(restaurant=restaurant)
-            if reviews.exists():
-                restaurant.avg_rating = sum([review.rating for review in reviews]) / reviews.count()
-            else:
-                restaurant.avg_rating = 0
-
-        
-        context['rating_range'] = range(5)
         return context
     
 class RestaurantDetailView(DetailView):
@@ -81,6 +77,18 @@ class RestaurantDetailView(DetailView):
         else:
             # Set default value for unauthenticated users
             context['is_bookmarked'] = False
+
+        if self.request.user.is_authenticated:
+            context['is_visited'] = UserVisited.objects.filter(user=self.request.user, restaurant=restaurant).exists()
+        else:
+            context['is_visited'] = False
+
+        isspotlight = SpotlightRestaurant.objects.filter(restaurant=restaurant , spotlighted=True)
+        if isspotlight:
+            context['is_spotlight']=True
+        else:
+            context['is_spotlight'] = False
+            
         return context
 
     def post(self, request, *args, **kwargs):
@@ -136,9 +144,6 @@ class RegisterView(FormView):
         messages.success(self.request, 'Your account has been created! You can now log in.')
         return super().form_valid(form)
     
-def profile_view(request):
-    return render(request, 'restaurant/profile.html')
-
 class BookmarkView(LoginRequiredMixin, ListView):
     model = Restaurant
     template_name = 'restaurant/bookmarked_restaurants.html'
@@ -153,5 +158,37 @@ class BookmarkView(LoginRequiredMixin, ListView):
         return Restaurant.objects.filter(id__in=bookmarked_restaurants_ids)
     
 
+class MarkVisitedView(View):
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+
+        restaurant = get_object_or_404(Restaurant, pk=kwargs['pk'])
+        visited, created = UserVisited.objects.get_or_create(user=request.user, restaurant=restaurant)
+
+        if not created:
+            visited.delete()
+            message = "Visit record removed"
+        else:
+            message = "Restaurant marked as visited"
+        return redirect('restaurant_detail', pk=restaurant.pk)
+
+class VisitedView(LoginRequiredMixin, ListView):
+    model = Restaurant
+    template_name = 'restaurant/visited_restaurants.html'
+    context_object_name = 'visited_restaurants'
+
+    def get_queryset(self):
+      
+        user = self.request.user
+        visited_restaurants_ids = UserVisited.objects.filter(user=user).values_list('restaurant_id', flat=True)
+        return Restaurant.objects.filter(id__in=visited_restaurants_ids)
+    
+class Spotlightview(ListView):
+    model = SpotlightRestaurant
+    template_name = "restaurant/spotlight_restaurants.html"
+    context_object_name = 'spotlight_restaurants'
 
 
+
+    

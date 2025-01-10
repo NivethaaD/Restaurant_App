@@ -96,7 +96,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from .models import Restaurant
-
+from django.db.models import Avg, F
 class RestaurantListTestCase(TestCase):
 
         def setUp(self):
@@ -191,24 +191,107 @@ class RestaurantListTestCase(TestCase):
         # Test for sorting 
 
         def test_sorting_by_rating_ascending(self):
-        
-            response = self.client.get(reverse('restaurant-list') + '?ordering=rating')
-            restaurants = response.context['restaurants']
+            
+            restaurant_closed = Restaurant.objects.create(
+                title="Closed Restaurant",
+                location="New York",
+                opening_time="10:00:00",  
+                closing_time="15:00:00", 
+                type_of_food="Indian",
+                cuisines="Curry",
+                rating=0.0,
+                cost_for_two=25,
+                owner=self.user  
+            )
+            restaurant_location = Restaurant.objects.create(
+                title="Location-based Restaurant",
+                location="San Francisco",
+                opening_time="08:00:00",  
+                closing_time="20:00:00",  
+                type_of_food="Mexican",
+                cuisines="Tacos",
+                rating=0.0,
+                cost_for_two=40,
+                owner=self.user  
+            )
+
+            restaurant_open = Restaurant.objects.create(
+                title="Open Restaurant",
+                location="New York",
+                opening_time="10:00:00",  
+                closing_time="22:00:00",  
+                type_of_food="Italian",
+                cuisines="Pizza",
+                rating=0.0,
+                cost_for_two=30,
+                owner=self.user  
+            )
+
+            # Create user reviews for these restaurants
+           
+            UserReview.objects.create(restaurant=restaurant_open, rating=5.0, user=self.user)
+            UserReview.objects.create(restaurant=restaurant_closed, rating=3.0, user=self.user)
+            UserReview.objects.create(restaurant=restaurant_location, rating=4.0, user=self.user)
+            
+            response = self.client.get(reverse('restaurant-list'))
+            response = self.client.get(reverse('restaurant-list') + '?ordering=avg_rating')
+            restaurants=response.context['restaurants']
+            print(response.context['restaurants'])
 
             # Check the order of restaurants by rating (ascending)
-            self.assertEqual(restaurants[0], self.restaurant_closed)  # Rating = 4.0
-            self.assertEqual(restaurants[1], self.restaurant_location)  # Rating = 4.2
-            self.assertEqual(restaurants[2], self.restaurant_open)  # Rating = 4.5
+
+            self.assertEqual(restaurants[0], restaurant_closed)  # Rating = 3.0
+            self.assertEqual(restaurants[1], restaurant_location)  # Rating = 4.0
+            self.assertEqual(restaurants[2], restaurant_open)  # Rating = 5.0
 
         def test_sorting_by_rating_descending(self):
           
-            response = self.client.get(reverse('restaurant-list') + '?ordering=-rating')
-            restaurants = response.context['restaurants']
+            restaurant_open = Restaurant.objects.create(
+                title="Open Restaurant",
+                location="New York",
+                opening_time="10:00:00",  
+                closing_time="22:00:00",  
+                type_of_food="Italian",
+                cuisines="Pizza",
+                rating=0.0,
+                cost_for_two=30,
+                owner=self.user  
+            )
+            restaurant_closed = Restaurant.objects.create(
+                title="Closed Restaurant",
+                location="New York",
+                opening_time="10:00:00",  
+                closing_time="15:00:00", 
+                type_of_food="Indian",
+                cuisines="Curry",
+                rating=0.0,
+                cost_for_two=25,
+                owner=self.user  
+            )
+            restaurant_location = Restaurant.objects.create(
+                title="Location-based Restaurant",
+                location="San Francisco",
+                opening_time="08:00:00",  
+                closing_time="20:00:00",  
+                type_of_food="Mexican",
+                cuisines="Tacos",
+                rating=0.0,
+                cost_for_two=40,
+                owner=self.user  
+            )
 
+            # Create user reviews for these restaurants
+            UserReview.objects.create(restaurant=restaurant_open, rating=5.0, user=self.user)
+            UserReview.objects.create(restaurant=restaurant_closed, rating=3.0, user=self.user)
+            UserReview.objects.create(restaurant=restaurant_location, rating=4.0, user=self.user)
+           
+            response = self.client.get(reverse('restaurant-list') + '?ordering=-avg_rating')
+            restaurants = response.context['restaurants']
+            # print(response.context['restaurants'])
             # Check the order of restaurants by rating (descending)
-            self.assertEqual(restaurants[0], self.restaurant_open)  # Rating = 4.5
-            self.assertEqual(restaurants[1], self.restaurant_location)  # Rating = 4.2
-            self.assertEqual(restaurants[2], self.restaurant_closed)  # Rating = 4.0
+            self.assertEqual(restaurants[0], restaurant_open)  # Rating = 5.0
+            self.assertEqual(restaurants[1], restaurant_location)  # Rating = 4.0
+            self.assertEqual(restaurants[2], restaurant_closed)  # Rating = 3.0
 
         def test_sorting_by_cost_for_two_ascending(self):
            
@@ -431,6 +514,7 @@ class RestaurantFeaturesTestCase(TestCase):
             owner=self.user
         )
 
+
     def test_add_bookmark(self):
        
         self.client.login(username='testuser', password='password')
@@ -482,3 +566,120 @@ class RestaurantFeaturesTestCase(TestCase):
         })
         self.assertEqual(UserReview.objects.filter(user=self.user, restaurant=self.restaurant).count(), 0)
         self.assertRedirects(response, reverse('restaurant_detail', args=[self.restaurant.pk]))
+
+# Testcase for Visited view
+class VisitedViewTest(TestCase):
+    def setUp(self):
+     
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.restaurant1 = Restaurant.objects.create(
+            title="Restaurant 1",
+            description="Desc 1" ,
+            rating=0.0 ,  
+            cost_for_two=500,
+            location="Test Location",
+            address="123 Test Street",
+            timings="10:00 AM - 10:00 PM",
+            type_of_food="Multi-cuisine",
+            cuisines="Indian, Italian",
+            opening_time="10:00:00",
+            closing_time="22:00:00",
+            owner=self.user)
+        
+        self.restaurant2 = Restaurant.objects.create(
+            title="Restaurant 2",
+            description="Desc 2" ,
+            rating=4.0 ,
+            cost_for_two=500,
+            location="Test Location",
+            address="123 Test Street",
+            timings="10:00 AM - 10:00 PM",
+            type_of_food="Multi-cuisine",
+            cuisines="Indian, Italian",
+            opening_time="10:00:00",
+            closing_time="22:00:00",
+            owner=self.user)
+        
+        self.restaurant3 = Restaurant.objects.create(
+            title="Restaurant 3",
+            description="Desc 3" ,
+            rating=4.0 ,
+            cost_for_two=500,
+            location="Test Location",
+            address="123 Test Street",
+            timings="10:00 AM - 10:00 PM",
+            type_of_food="Multi-cuisine",
+            cuisines="Indian, Italian",
+            opening_time="10:00:00",
+            closing_time="22:00:00",
+            owner=self.user)
+     
+        UserVisited.objects.create(user=self.user, restaurant=self.restaurant1)
+        UserVisited.objects.create(user=self.user, restaurant=self.restaurant2)
+        
+        self.url = reverse('visited_restaurants')  
+
+    def test_visited_view_requires_login(self):
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)  
+
+    def test_visited_restaurants_displayed(self):
+        self.client.login(username='testuser', password='testpassword')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'restaurant/visited_restaurants.html')
+        self.assertContains(response, "Restaurant 1")
+        self.assertContains(response, "Restaurant 2")
+        self.assertNotContains(response, "Restaurant 3")
+
+# Testcase for Spotlight 
+class SpotlightViewTest(TestCase):
+    def setUp(self):
+     
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.restaurant1 = Restaurant.objects.create(
+            title="Restaurant 1",
+            description="Desc 1" ,
+            rating=0.0 ,  
+            cost_for_two=500,
+            location="Test Location",
+            address="123 Test Street",
+            timings="10:00 AM - 10:00 PM",
+            type_of_food="Multi-cuisine",
+            cuisines="Indian, Italian",
+            opening_time="10:00:00",
+            closing_time="22:00:00",
+            owner=self.user)
+        
+        self.restaurant2 = Restaurant.objects.create(
+            title="Restaurant 2",
+            description="Desc 2" ,
+            rating=4.0 ,
+            cost_for_two=500,
+            location="Test Location",
+            address="123 Test Street",
+            timings="10:00 AM - 10:00 PM",
+            type_of_food="Multi-cuisine",
+            cuisines="Indian, Italian",
+            opening_time="10:00:00",
+            closing_time="22:00:00",
+            owner=self.user)
+        
+        SpotlightRestaurant.objects.create(restaurant=self.restaurant1)
+        SpotlightRestaurant.objects.create(restaurant=self.restaurant2)
+
+        self.url = reverse('spotlighted_restaurants')  
+
+    def test_spotlight_view_status_code(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_spotlight_view_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, 'restaurant/spotlight_restaurants.html')
+
+    def test_spotlight_restaurants_displayed(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, "Restaurant 1")
+        self.assertContains(response, "Restaurant 2")
+
