@@ -47,11 +47,11 @@ class RestaurantFilter(django_filters.FilterSet):
 
     ordering = django_filters.OrderingFilter(
         fields=(
-            ('rating', 'rating'),
+            ('avg_rating', 'avg_rating'),
             ('cost_for_two', 'cost_for_two'),
         ),
         field_labels={
-            'rating': 'Rating',
+            'avg_rating': 'Rating',
             'cost_for_two': 'Cost for Two',
         },
         label='Sort By'

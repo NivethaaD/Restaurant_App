@@ -12,6 +12,8 @@ from .forms import UserReviewForm, UserReviewEditForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Avg, DecimalField
+from django.db.models.functions import Coalesce
 
 def home(request):
     return render(request,'restaurant/home.html')
@@ -23,7 +25,10 @@ class RestaurantListView(ListView):
     paginate_by = 3
 
     def get_queryset(self):
-        queryset = Restaurant.objects.all()
+      
+        queryset = Restaurant.objects.annotate(
+            avg_rating=Coalesce(Avg('reviews__rating'), 0 , output_field=DecimalField())  # Annotate avg_rating
+        )
         restaurant_filter = RestaurantFilter(self.request.GET, queryset=queryset)
         queryset = restaurant_filter.qs 
         return queryset
@@ -33,16 +38,6 @@ class RestaurantListView(ListView):
         context['food_type_choices'] = Restaurant._meta.get_field('type_of_food').choices
         context['cuisines_choices'] = Restaurant._meta.get_field('cuisines').choices
         context['rating_range']= range(5)
-
-        for restaurant in context['restaurants']:
-            reviews = UserReview.objects.filter(restaurant=restaurant)
-            if reviews.exists():
-                restaurant.avg_rating = sum([review.rating for review in reviews]) / reviews.count()
-            else:
-                restaurant.avg_rating = 0
-
-        
-        context['rating_range'] = range(5)
         return context
     
 class RestaurantDetailView(DetailView):
