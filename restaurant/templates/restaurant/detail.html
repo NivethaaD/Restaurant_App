@@ -58,7 +58,7 @@
         <span class="ml-4 text-lg text-gray-600">({{ restaurant.opening_time }} to {{ restaurant.closing_time }})</span>
       </div>
       
-      <form method="post">
+      <form method="post" action="{% url 'toggle_bookmark' restaurant.id %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-primary" id="bookmark-button">
             {% if is_bookmarked %}
@@ -387,14 +387,5 @@
       }
   }
 </script>
-
-{% if not user.is_authenticated %}
-<script type="text/javascript">
-    document.getElementById('bookmark-button').addEventListener('click', function(e) {
-        e.preventDefault();  // Prevent form submission
-        window.location.href = "{% url 'login' %}?next=" + window.location.href;  // Redirect to login page with next parameter
-    });
-</script>
-{% endif %}
 
 {% endblock %}

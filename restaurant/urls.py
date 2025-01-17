@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RestaurantListView , RestaurantDetailView , home , RegisterView  , BookmarkView , AddReviewView , EditReviewView, DeleteReviewView , MarkVisitedView ,VisitedView,Spotlightview
+from .views import RestaurantListView , RestaurantDetailView , home , RegisterView  , BookmarkView , AddReviewView , EditReviewView, DeleteReviewView , MarkVisitedView ,VisitedView,Spotlightview , ToggleBookmarkView
 from django.contrib.auth import views as auth_views
 
 
@@ -21,7 +21,7 @@ urlpatterns = [
     path('review/<int:pk>/delete/', DeleteReviewView.as_view(), name='delete_review'),
     path('restaurant/<int:pk>/mark-visited/', MarkVisitedView.as_view(), name='mark_visited'),
     path('visited-restaurants/', VisitedView.as_view(), name='visited_restaurants'),
-    path('spotlight-restaurants/', Spotlightview.as_view(), name='spotlighted_restaurants')
-
+    path('spotlight-restaurants/', Spotlightview.as_view(), name='spotlighted_restaurants'),
+    path('restaurant/<int:pk>/bookmark/', ToggleBookmarkView.as_view(), name='toggle_bookmark'),
 ]
 
