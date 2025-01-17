@@ -24,7 +24,7 @@ class RestaurantFilter(django_filters.FilterSet):
     )
     
     rating = django_filters.NumberFilter(
-        field_name='rating',
+        field_name='avg_rating',
         lookup_expr='gte',
         label='Minimum Rating'
     )

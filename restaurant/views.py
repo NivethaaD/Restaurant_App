@@ -91,8 +91,9 @@ class RestaurantDetailView(DetailView):
             
         return context
 
-    def post(self, request, *args, **kwargs):
-        restaurant = self.get_object()
+class ToggleBookmarkView(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        restaurant = get_object_or_404(Restaurant, pk=pk)
         bookmark, created = UserBookmark.objects.get_or_create(user=request.user, restaurant=restaurant)
 
         if not created:
@@ -104,6 +105,9 @@ class RestaurantDetailView(DetailView):
             message = "Bookmark added"
 
         return redirect('restaurant_detail', pk=restaurant.pk)
+    
+    def get(self, request, pk, *args, **kwargs):
+        return redirect('restaurant_detail', pk=pk)
     
 class AddReviewView(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
